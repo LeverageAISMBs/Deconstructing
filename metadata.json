@@ -1,0 +1,7 @@
+{
+  "description": "An advanced, interactive web application for exploring a deep research report, featuring a context-aware AI chatbot and voice assistant powered by the Gemini API.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "name": "App"
+}
