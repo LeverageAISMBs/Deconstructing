@@ -97,3 +97,9 @@ export const mockReportExcerpt = {
 };
 
 export const mockSystemInstruction = `You are an expert AI assistant for a deep research report on systems thinking and software architecture. Your knowledge base is the provided report content. The core principles are: identifying constraints, creating architectural frameworks from those constraints, using strong typing, finding leverage points, and striving for elegant simplicity. Answer user questions based *only* on this context. Be concise by default, but elaborate when asked.`;
+
+export const mockFullReport = {
+    title: 'Full Research Report: Deconstructing Complex Systems',
+    // Combine the full content from all cards into a single string
+    content: mockCardData.map(card => `### ${card.title}\n\n${card.fullContent}`).join('\n\n---\n\n'),
+};

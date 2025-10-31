@@ -24,6 +24,7 @@ html, body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
 }
 
 #root {
@@ -80,11 +81,22 @@ main {
   margin-top: 4rem;
 }
 
+.logo-container {
+  display: flex;
+  flex-direction: column;
+}
+
 .logo {
   font-size: 1.5rem;
   font-weight: 600;
   text-decoration: none;
   color: var(--text-primary);
+}
+
+.logo-tagline {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: -2px;
 }
 
 .nav-link {
@@ -96,6 +108,17 @@ main {
 
 .nav-link:hover {
   color: var(--accent-secondary);
+}
+
+.footer-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.footer-tagline {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
 /* Card Grid */
@@ -255,6 +278,62 @@ main {
   color: var(--text-secondary);
 }
 
+/* Full Report Section */
+.full-report-section {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.full-report-section h2 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.full-report-content {
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+  max-height: 800px;
+  overflow-y: auto;
+}
+
+.full-report-content::-webkit-scrollbar {
+  width: 8px;
+}
+.full-report-content::-webkit-scrollbar-track {
+  background: var(--background-primary);
+  border-radius: 4px;
+}
+.full-report-content::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
+.full-report-content::-webkit-scrollbar-thumb:hover {
+  background-color: var(--accent-primary);
+}
+
+.full-report-content h3 {
+  font-size: 1.75rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+.full-report-content h3:first-of-type {
+    margin-top: 0;
+}
+
+
+.full-report-content p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  white-space: pre-wrap;
+}
+
 /* AI Panel */
 .ai-toggle-button {
   position: fixed;
@@ -401,6 +480,8 @@ main {
   padding: 1rem;
   border-top: 1px solid var(--border-color);
   text-align: center;
+  display: flex;
+  flex-direction: column;
 }
 
 .voice-assistant-button {
@@ -425,6 +506,49 @@ main {
     color: var(--text-secondary);
     font-size: 0.9rem;
     min-height: 1.2em;
+}
+
+.voice-assistant-transcription {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: var(--background-primary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  min-height: 120px;
+  max-height: 250px;
+  overflow-y: auto;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  word-wrap: break-word;
+}
+
+.voice-assistant-transcription::-webkit-scrollbar {
+  width: 6px;
+}
+.voice-assistant-transcription::-webkit-scrollbar-track {
+  background: var(--background-primary);
+  border-radius: 3px;
+}
+.voice-assistant-transcription::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+}
+.voice-assistant-transcription::-webkit-scrollbar-thumb:hover {
+  background-color: var(--accent-primary);
+}
+
+.transcription-history p {
+  margin-bottom: 0.5rem;
+  white-space: pre-wrap;
+}
+
+.transcription-live {
+  color: var(--text-primary);
+  font-style: italic;
+  white-space: pre-wrap;
 }
 
 /* Responsive */

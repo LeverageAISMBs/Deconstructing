@@ -1,5 +1,7 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob } from '@google/genai';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { GoogleGenAI, LiveServerMessage, Modality, Blob } from '@google/genai';
+
+type LiveSession = Awaited<ReturnType<InstanceType<typeof GoogleGenAI>['live']['connect']>>;
 
 interface VoiceAssistantProps {
   systemInstruction: string;
@@ -56,15 +58,21 @@ function createBlob(data: Float32Array): Blob {
   };
 }
 
-
 const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ systemInstruction }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [status, setStatus] = useState('Click to start conversation');
+  const [transcriptionHistory, setTranscriptionHistory] = useState<string[]>([]);
+  const [liveTranscript, setLiveTranscript] = useState('');
+  
   const sessionRef = useRef<LiveSession | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const scriptProcessorRef = useRef<ScriptProcessorNode | null>(null);
   const mediaStreamSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const transcriptContainerRef = useRef<HTMLDivElement>(null);
+
+  const currentInputRef = useRef('');
+  const currentOutputRef = useRef('');
 
   const stopConversation = useCallback(() => {
     if (sessionRef.current) {
@@ -89,7 +97,17 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ systemInstruction }) =>
     }
     setIsRecording(false);
     setStatus('Click to start conversation');
+    setTranscriptionHistory([]);
+    setLiveTranscript('');
+    currentInputRef.current = '';
+    currentOutputRef.current = '';
   }, []);
+
+  useEffect(() => {
+    if (transcriptContainerRef.current) {
+      transcriptContainerRef.current.scrollTop = transcriptContainerRef.current.scrollHeight;
+    }
+  }, [transcriptionHistory, liveTranscript]);
 
   const startConversation = async () => {
     if (isRecording) {
@@ -101,11 +119,9 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ systemInstruction }) =>
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
       
-      // FIX: Cast window to any to allow webkitAudioContext for broader browser support without TypeScript errors.
       const inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       audioContextRef.current = inputAudioContext;
 
-      // FIX: Cast window to any to allow webkitAudioContext for broader browser support without TypeScript errors.
       const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       let nextStartTime = 0;
 
@@ -132,7 +148,37 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ systemInstruction }) =>
             scriptProcessor.connect(inputAudioContext.destination);
           },
           onmessage: async (message: LiveServerMessage) => {
-            const base64EncodedAudioString = message.serverContent?.modelTurn?.parts[0]?.inlineData.data;
+            let liveText = '';
+            if (message.serverContent?.inputTranscription) {
+              currentInputRef.current += message.serverContent.inputTranscription.text;
+              liveText = `You: ${currentInputRef.current}`;
+            }
+            if (message.serverContent?.outputTranscription) {
+              // Reset input ref when model starts talking
+              if(currentInputRef.current){
+                const finalInput = `You: ${currentInputRef.current.trim()}`;
+                setTranscriptionHistory(prev => [...prev, finalInput]);
+                currentInputRef.current = '';
+              }
+              currentOutputRef.current += message.serverContent.outputTranscription.text;
+              liveText = `AI: ${currentOutputRef.current}`;
+            }
+        
+            if (liveText) {
+              setLiveTranscript(liveText);
+            }
+        
+            if (message.serverContent?.turnComplete) {
+              const finalOutput = `AI: ${currentOutputRef.current.trim()}`;
+              if (currentOutputRef.current.trim()) {
+                setTranscriptionHistory(prev => [...prev, finalOutput]);
+              }
+              currentOutputRef.current = '';
+              setLiveTranscript('');
+            }
+            
+            // FIX: Safely access audio data to prevent the error.
+            const base64EncodedAudioString = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (base64EncodedAudioString) {
               nextStartTime = Math.max(nextStartTime, outputAudioContext.currentTime);
               const audioBuffer = await decodeAudioData(
@@ -155,13 +201,14 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ systemInstruction }) =>
           },
           onclose: (e: CloseEvent) => {
             setStatus('Connection closed.');
-            // stopConversation is already called inside onclose, but can be called again to be safe.
             stopConversation();
           },
         },
         config: {
           responseModalities: [Modality.AUDIO],
           systemInstruction: systemInstruction,
+          outputAudioTranscription: {},
+          inputAudioTranscription: {},
         },
       });
 
@@ -184,6 +231,16 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ systemInstruction }) =>
         {isRecording ? 'Stop Conversation' : 'Start Conversation'}
       </button>
       <div className="voice-assistant-status">{status}</div>
+      <div className="voice-assistant-transcription" ref={transcriptContainerRef}>
+        <div className="transcription-history">
+          {transcriptionHistory.map((text, index) => (
+            <p key={index}>{text}</p>
+          ))}
+        </div>
+        {liveTranscript && (
+          <p className="transcription-live">{liveTranscript}</p>
+        )}
+      </div>
     </div>
   );
 };

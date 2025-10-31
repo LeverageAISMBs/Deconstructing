@@ -5,7 +5,8 @@ import CardGrid from './components/CardGrid';
 import Modal from './components/Modal';
 import AIAssistantPanel from './components/AIAssistantPanel';
 import TextDisplay from './components/TextDisplay';
-import { mockCardData, mockReportExcerpt, mockSystemInstruction } from './mockData';
+import FullReport from './components/FullReport';
+import { mockCardData, mockReportExcerpt, mockSystemInstruction, mockFullReport } from './mockData';
 import type { CardData } from './types';
 
 const App: React.FC = () => {
@@ -32,6 +33,7 @@ const App: React.FC = () => {
         <p className="main-subtitle">An Interactive Exploration of Key Leverage Points</p>
         <CardGrid cards={mockCardData} onCardClick={handleCardClick} />
         <TextDisplay content={mockReportExcerpt} />
+        <FullReport report={mockFullReport} />
       </main>
       <Footer />
       {selectedCard && <Modal card={selectedCard} onClose={closeModal} />}
